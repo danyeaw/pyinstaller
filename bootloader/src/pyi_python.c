@@ -55,6 +55,10 @@ DECLPROC(PyErr_Clear);
 DECLPROC(PyErr_Occurred);
 DECLPROC(PyErr_Print);
 
+DECLPROC(PyErr_Fetch);
+DECLPROC(PyObject_Str);
+DECLPROC(PyUnicode_AsUTF8);
+
 DECLPROC(PyImport_AddModule);
 DECLPROC(PyImport_ExecCodeModule);
 DECLPROC(PyImport_ImportModule);
@@ -130,6 +134,10 @@ pyi_python_map_names(HMODULE dll, int pyvers)
     GETPROC(dll, PyObject_SetAttrString);
     GETPROC(dll, PyRun_SimpleString);
 
+    GETPROC(dll, PyObject_Str);
+
+    GETPROC(dll, PyErr_Fetch);
+
     if (pyvers < 30) {
         GETPROC(dll, PyString_FromString);
         GETPROC(dll, PyString_FromFormat);
@@ -146,6 +154,7 @@ pyi_python_map_names(HMODULE dll, int pyvers)
     if (pyvers >= 30) {
         /* new in Python 2.6, but not reliable available in all Linux distros */
         GETPROC(dll, PyUnicode_FromString);
+        GETPROC(dll, PyUnicode_AsUTF8);
 
         /* _Py_char2wchar is new in Python 3, in Python 3.5 renamed to Py_DecodeLocale */
         if (pyvers >= 35) {

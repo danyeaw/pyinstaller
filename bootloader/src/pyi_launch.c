@@ -426,10 +426,41 @@ pyi_launch_run_scripts(ARCHIVE_STATUS *status)
              * (Since we evaluate module-level code, which is not allowed to return an
              * object, the Python object returned is always None.) */
             if (!retval) {
-                PI_PyErr_Print();
-                /* If the error was SystemExit, PyErr_Print calls exit() without
-                 * returning. So don't print "Failed to execute" on SystemExit. */
+                /* PI_PyErr_Print(); */
+                PyObject *ptype, *pvalue, *ptraceback;
+                PyObject *pyobj_bytes, *module_name, *pyth_module, *pyth_func;
+                const char *pvalue_char;
+
+                PI_PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+                pyobj_bytes = PI_PyObject_Str(pvalue);
+                pvalue_char = PI_PyUnicode_AsUTF8(pyobj_bytes);
                 FATALERROR("Failed to execute script %s\n", ptoc->name);
+                FATALERROR("Error: %s\n", pvalue_char);
+
+/*
+                *//* See if we can get a full traceback *//*
+
+                module_name = PI_PyUnicode_AsUTF8("traceback");
+                pyth_module = PI_PyImport_Import(module_name);
+                Py_DECREF(module_name);
+
+                if (pyth_module == NULL) {
+                    full_backtrace = NULL;
+                    return;
+                }
+
+                pyth_func = PI_PyObject_GetAttrString(pyth_module, "format_exception");
+                if (pyth_func && PI_PyCallable_Check(pyth_func)) {
+                    PyObject *pyth_val;
+
+                    pyth_val = PI_PyObject_CallFunctionObjArgs(pyth_func, ptype, pvalue, ptraceback, NULL);
+
+                    pyobj_bytes = PI_PyObject_Str(pyth_val);
+                    tb_bytes = PI_PyUnicode_AsUTF8(pyobj_bytes);
+                    full_backtrace = strdup(tb_bytes);
+                    Py_DECREF(pyth_val);
+                }
+*/
                 return -1;
             }
             free(data);

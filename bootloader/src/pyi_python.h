@@ -151,6 +151,12 @@ EXTDECLPROC(PyObject *, PyUnicode_Decode,
 EXTDECLPROC(PyObject *, PyEval_EvalCode, (PyObject *, PyObject *, PyObject *));
 EXTDECLPROC(PyObject *, PyMarshal_ReadObjectFromString, (const char *, size_t));  /* Py_ssize_t */
 
+
+EXTDECLPROC(void, PyErr_Fetch, (PyObject **, PyObject **, PyObject **));
+EXTDECLPROC(PyObject *, PyObject_Str, (PyObject *));
+EXTDECLPROC(const char *, PyUnicode_AsUTF8, (PyObject *));
+
+
 /*
  * Macros for reference counting through exported functions
  * (that is: without binding to the binary structure of a PyObject.
