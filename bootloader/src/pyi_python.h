@@ -122,6 +122,7 @@ EXTDECLPROC(PyObject *, PyString_FromString, (const char *));
 /* Create a Unicode object from the char buffer. The bytes will be interpreted as being UTF-8 encoded. */
 EXTDECLPROC(PyObject *, PyUnicode_FromString, (const char *));
 EXTDECLPROC(PyObject *, PyObject_CallFunction, (PyObject *, char *, ...));
+EXTDECLPROC(PyObject *, PyObject_CallFunctionObjArgs, (PyObject *, ...));
 EXTDECLPROC(PyObject *, PyModule_GetDict, (PyObject *));
 EXTDECLPROC(PyObject *, PyDict_GetItemString, (PyObject *, char *));
 EXTDECLPROC(void, PyErr_Clear, (void) );
@@ -155,6 +156,7 @@ EXTDECLPROC(PyObject *, PyMarshal_ReadObjectFromString, (const char *, size_t));
 EXTDECLPROC(void, PyErr_Fetch, (PyObject **, PyObject **, PyObject **));
 EXTDECLPROC(PyObject *, PyObject_Str, (PyObject *));
 EXTDECLPROC(const char *, PyUnicode_AsUTF8, (PyObject *));
+EXTDECLPROC(PyObject *, PyObject_GetAttrString, (PyObject *, const char *));
 
 
 /*
