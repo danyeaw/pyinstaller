@@ -72,6 +72,7 @@ DECLPROC(PyObject_CallFunctionObjArgs);
 DECLPROC(PyObject_SetAttrString);
 DECLPROC(PyRun_SimpleString);
 DECLPROC(PyString_FromString);
+DECLPROC(PyString_AsString);
 DECLPROC(PySys_AddWarnOption);
 DECLPROC(PySys_SetArgvEx);
 DECLPROC(PySys_GetObject);
@@ -146,6 +147,7 @@ pyi_python_map_names(HMODULE dll, int pyvers)
     if (pyvers < 30) {
         GETPROC(dll, PyString_FromString);
         GETPROC(dll, PyString_FromFormat);
+        GETPROC(dll, PyString_AsString);
     }
     ;
     GETPROC(dll, PySys_AddWarnOption);
@@ -159,7 +161,6 @@ pyi_python_map_names(HMODULE dll, int pyvers)
     if (pyvers >= 30) {
         /* new in Python 2.6, but not reliable available in all Linux distros */
         GETPROC(dll, PyUnicode_FromString);
-        GETPROC(dll, PyUnicode_AsUTF8);
 
         /* _Py_char2wchar is new in Python 3, in Python 3.5 renamed to Py_DecodeLocale */
         if (pyvers >= 35) {
@@ -180,6 +181,11 @@ pyi_python_map_names(HMODULE dll, int pyvers)
     if (pyvers >= 32) {
         /* new in Python 3.2 */
         GETPROC(dll, PyUnicode_DecodeFSDefault);
+    }
+
+    if (pyvers >= 33) {
+        /* new in Python 3.3 */
+        GETPROC(dll, PyUnicode_AsUTF8);
     }
 
     VS("LOADER: Loaded functions from Python library.\n");

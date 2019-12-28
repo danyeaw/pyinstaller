@@ -363,13 +363,17 @@ int
 pyi_launch_run_scripts(ARCHIVE_STATUS *status)
 {
     unsigned char *data;
+    const char *cchar_pvalue, *cchar_tb;
     char buf[PATH_MAX];
+    char *char_pvalue, *char_tb, *module_name;
     size_t namelen;
     TOC * ptoc = status->tocbuff;
     PyObject *__main__;
     PyObject *__file__;
     PyObject *main_dict;
     PyObject *code, *retval;
+    PyObject *ptype, *pvalue, *ptraceback;
+    PyObject *pyth_str_pvalue, *pyth_tb, *pyth_str_tb, *pyth_module, *pyth_func;
 
     __main__ = PI_PyImport_AddModule("__main__");
 
@@ -426,42 +430,59 @@ pyi_launch_run_scripts(ARCHIVE_STATUS *status)
              * (Since we evaluate module-level code, which is not allowed to return an
              * object, the Python object returned is always None.) */
             if (!retval) {
-                PyObject *ptype, *pvalue, *ptraceback;
-                PyObject *pyth_str_pvalue, *pyth_tb, *pyth_str_tb, *pyth_module, *pyth_func;
-                const char *cchar_pvalue, *cchar_tb;
-                char *module_name, *full_backtrace;
-
-                // PI_PyErr_Print();
                 FATALERROR("Failed to execute script %s\n", ptoc->name);
 
-                PI_PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-                pyth_str_pvalue = PI_PyObject_Str(pvalue);
-                cchar_pvalue = PI_PyUnicode_AsUTF8(pyth_str_pvalue);
-                FATALERROR("Error: %s\n", cchar_pvalue);
-                Py_DECREF(pyth_str_pvalue);
+                #if defined(_WIN32) && defined(WINDOWED) && defined(LAUNCH_DEBUG)
+                    /* If running in Windows in windowed mode with debug, print
+                     * the traceback to a message box */
 
-                /* See if we can get a full traceback */
+                    /* First get the value of the error */
 
+                    PI_PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+                    pyth_str_pvalue = PI_PyObject_Str(pvalue);
 
-                module_name = "traceback";
-                pyth_module = PI_PyImport_ImportModule(module_name);
-
-                if (pyth_module != NULL) {
-                    pyth_func = PI_PyObject_GetAttrString(pyth_module, "format_exception");
-                    if (pyth_func) {
-                        pyth_tb = PI_PyObject_CallFunctionObjArgs(pyth_func, ptype, pvalue, ptraceback, NULL);
-                        pyth_str_tb = PI_PyObject_Str(pyth_tb);
-                        cchar_tb = PI_PyUnicode_AsUTF8(pyth_str_tb);
-                        FATALERROR("Traceback: %s\n", cchar_tb);
-                        Py_DECREF(pyth_tb);
-                        Py_DECREF(pyth_str_tb);
+                    if (is_py2) {
+                        char_pvalue = PI_PyString_AsString(pyth_str_pvalue);
+                        FATALERROR("Error: %s\n", char_pvalue);
+                    } else {
+                        cchar_pvalue = PI_PyUnicode_AsUTF8(pyth_str_pvalue);
+                        FATALERROR("Error: %s\n", cchar_pvalue);
                     }
-                    Py_DECREF(pyth_func);
-                }
-                Py_DECREF(ptype);
-                Py_DECREF(pvalue);
-                Py_DECREF(ptraceback);
-                Py_DECREF(pyth_module);
+                    Py_DECREF(pyth_str_pvalue);
+
+                    /* Next see if we can get a full traceback, only works with
+                     * --noarchive */
+
+                    module_name = "traceback";
+                    pyth_module = PI_PyImport_ImportModule(module_name);
+
+                    if (pyth_module != NULL) {
+                        pyth_func = PI_PyObject_GetAttrString(pyth_module, "format_exception");
+                        if (pyth_func) {
+                            pyth_tb = PI_PyObject_CallFunctionObjArgs(pyth_func, ptype, pvalue, ptraceback, NULL);
+                            pyth_str_tb = PI_PyObject_Str(pyth_tb);
+                            if (is_py2) {
+                                char_tb = PI_PyString_AsString(pyth_str_tb);
+                                FATALERROR("Traceback: %s\n", char_tb);
+                            } else {
+                                cchar_tb = PI_PyUnicode_AsUTF8(pyth_str_tb);
+                                FATALERROR("Traceback: %s\n", cchar_tb);
+                            }
+                            Py_DECREF(pyth_tb);
+                            Py_DECREF(pyth_str_tb);
+                        }
+                        Py_DECREF(pyth_func);
+                    }
+                    Py_DECREF(ptype);
+                    Py_DECREF(pvalue);
+                    Py_DECREF(ptraceback);
+                    Py_DECREF(pyth_module);
+
+                #else /* if defined(_WIN32) and defined(WINDOWED) and defined(LAUNCH_DEBUG) */
+
+                    PI_PyErr_Print();
+
+                #endif /* if defined(_WIN32) and defined(WINDOWED) and defined(LAUNCH_DEBUG) */
 
                 return -1;
             }
