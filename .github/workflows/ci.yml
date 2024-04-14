@@ -7,11 +7,6 @@ on:
     branches:
       - 'develop'
       - 'v4'
-  pull_request:
-    branches:
-      - '**'
-      - '!master'
-      - '!pyup/**'
 
 env:
   # Colored pytest output on CI despite not having a tty
